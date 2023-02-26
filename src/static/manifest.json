@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Timer",
+  "version": "1.0.0",
+  "description": "This is a pomodro timer extension",
+  "icons": {
+    "16": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
+  "action": {
+    "icons": {
+      "16": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
+    },
+    "default_popup": "popup.html",
+    "default_title": "This is the pomodro timer"
+  },
+  "options_page": "options.html",
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "storage",
+    "alarms",
+    "notifications",
+    "scripting",
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}

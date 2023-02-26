@@ -1,0 +1,19 @@
+ {
+     "compilerOptions": {
+         "module": "es2020",
+         "moduleResolution": "node",
+         "esModuleInterop": true,
+         "baseUrl": ".",
+         "experimentalDecorators": true,
+         "noImplicitAny": true,
+         "outDir": "dist",
+         "removeComments": true,
+         "rootDir": ".",
+         "sourceMap": true,
+        //  "strict": true,
+         "target": "ES2022",
+         "jsx": "react-jsx",
+     },
+     "include": ["src/**/*.ts", "src/**/*.tsx"],
+     "exclude": ["node_modules"],
+ }
