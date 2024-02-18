@@ -1,21 +1,33 @@
 import { URL_TO_PLATFORM } from "../constants/URLToPlatformMapping"
 import { jobApplyDomManipulationActions } from "../services/job.config"
 
-export const contains = (selector: any, textIdentifier: any,) => {
+export const contains = (selector: any, textIdentifiers: string[]) => {
   var elements = document.querySelectorAll(selector);
   return Array.prototype.filter.call(elements, function (element: { textContent: string; }) {
-    return RegExp(textIdentifier).test(element.textContent);
+    return textIdentifiers.some(identifier => {
+      const regex = new RegExp(`\\b${identifier}\\b`, 'i'); // Match whole word
+      return regex.test(element.textContent);
+    });
   });
 }
 
-
 // Usage example
-const findElement = ({ resolve, reject, }: { resolve: any, reject: any }, { selector = '', textIdentifier = '', nodeIndex = 0, fallBackSelector = '', fallBackTextIdentifier = "", delay }: any) => {
-  let element: Element
-
-  if (textIdentifier) {
-    element = contains(selector, textIdentifier,)[nodeIndex]
+const findElement = ({ resolve, reject, }: { resolve: any, reject: any }, { controlNodeType = "", selector = '', textIdentifiers = '', nodeIndex = 0, fallBackSelector = '', fallBacktextIdentifiers = "", delay }: any) => {
+  let element: any
+  if (textIdentifiers) {
+    element = contains(selector, textIdentifiers,)[nodeIndex]
   }
+  // else if (controlNodeType?.length) {
+  //   elements = document.querySelectorAll(selector) as unknown as any[];
+  //   console.log({ elements, controlNodeType });
+
+  //   elements = elements?.filter((element) => {
+  //     if ([controlNodeType].includes(element?.control?.type))
+  //       return true;
+  //   });
+  //   console.log({ yy: elements });
+
+  // }
   else {
     element = document.querySelector(selector);
 
@@ -30,12 +42,14 @@ const findElement = ({ resolve, reject, }: { resolve: any, reject: any }, { sele
 
 
 }
-function waitForElement({ selector = '', textIdentifier = '', fallBackSelector = '', fallBackTextIdentifier = '', nodeIndex = 0, delay = 0 }, { minDelay = 3000, maxDelay = 5000 } = {}) {
+function waitForElement({ controlNodeType = "", selector = '', textIdentifiers = '', fallBackSelector = '', fallBacktextIdentifiers = '', nodeIndex = 0, delay = 0 }, { minDelay = 5000, maxDelay = 10000 } = {}) {
   return new Promise((resolve, reject) => {
-    const delay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
-    findElement({ resolve, reject }, { selector, textIdentifier, nodeIndex, fallBackSelector, fallBackTextIdentifier, delay })
+    const delay = (Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay);
+
+
+    findElement({ resolve, reject }, { controlNodeType, selector, textIdentifiers, nodeIndex, fallBackSelector, fallBacktextIdentifiers, delay })
     const observer = new MutationObserver((mutations) => {
-      findElement({ resolve, reject }, { selector, textIdentifier, nodeIndex, fallBackSelector, fallBackTextIdentifier, delay })
+      findElement({ resolve, reject }, { controlNodeType, selector, textIdentifiers, nodeIndex, fallBackSelector, fallBacktextIdentifiers, delay })
 
     });
     observer.observe(document, {
@@ -44,7 +58,7 @@ function waitForElement({ selector = '', textIdentifier = '', fallBackSelector =
     });
   });
 }
-const doAction = ({ action, element, value, focus = false }: {
+const doAction = ({ action, element, value }: {
   action: any,
   element: any,
   value: any,
@@ -52,13 +66,25 @@ const doAction = ({ action, element, value, focus = false }: {
 }): void => {
   switch (action) {
     case 'click': {
+      console.log({ action, element });
+
       element.click()
       break
     }
     case 'setValue': {
+      console.log({ tag: element?.tagName });
 
-      element.focus()
-      element.value = value
+      if (element?.tagName === "LABEL") {
+        console.log({ control: element?.control, textContent: element?.textContent });
+
+        element.control.focus();
+        element.control.value = value
+
+      }
+      {
+        element.focus()
+        element.value = value
+      }
 
       break
     }
@@ -67,9 +93,11 @@ const doAction = ({ action, element, value, focus = false }: {
 
 }
 export const manipulateDOM = async (domAction: any, index: number) => {
-  const { selector, textIdentifier, nodeIndex, action, value, focus, fallBackTextIdentifier, fallBackSelector, delay } = domAction
-  const element = await waitForElement({ selector, nodeIndex, textIdentifier, fallBackTextIdentifier, fallBackSelector, delay }, { minDelay: (index + 1) * 500, maxDelay: (index + 1) * 1000 })
-
+  const { controlNodeType = [], selector, textIdentifiers, nodeIndex, action, value, focus, fallBacktextIdentifiers, fallBackSelector, delay, repeat = false } = domAction
+  const element = await waitForElement({ controlNodeType, selector, nodeIndex, textIdentifiers, fallBacktextIdentifiers, fallBackSelector, delay }, { minDelay: (index + 1) * 500, maxDelay: (index + 1) * 1000 })
+  if (repeat) {
+    manipulateDOM(domAction, index);
+  }
   doAction({ element, action, value, focus })
 
 
